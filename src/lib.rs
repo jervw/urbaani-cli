@@ -5,7 +5,7 @@ use std::process;
 use termion::{color, style};
 
 const URL: &str = "https://urbaanisanakirja.com";
-const N_RESULTS: usize = 3;
+const NUM: usize = 3; // number of results to display
 
 pub struct Urban {
     query: String,
@@ -51,10 +51,11 @@ impl Urban {
         let container = Selector::parse("div.box").unwrap();
 
         let definition = Selector::parse("p").unwrap();
-        let user = Selector::parse("span.user").unwrap();
+        let quote = Selector::parse("blockquote").unwrap();
+        let contributor = Selector::parse("span.user").unwrap();
         let date = Selector::parse("span.datetime").unwrap();
 
-        let entries = body.select(&container).take(N_RESULTS);
+        let entries = body.select(&container).take(NUM);
 
         let mut found = false;
         for e in entries {
@@ -62,18 +63,28 @@ impl Urban {
 
             let definition: String = e.select(&definition).next().unwrap().text().collect();
             let wrapped_definition = textwrap::wrap(&definition, 64);
+            wrapped_definition
+                .iter()
+                .for_each(|x| println!(" │ {}", x));
 
-            
-            for line in wrapped_definition {
-                println!(" │ {}", line)
-            }
+            // if there are any given examples, seperate and output them.
+            match e.select(&quote).next() {
+                Some(ctx) => {
+                    let quotes: String = ctx.text().collect();
+                    // TODO, fix bug related to extra newlines
+                    for i in quotes.lines() {
+                        println!("- {}", i.trim_start());
+                    }
+                }
+                None => (),
+            };
 
             // metadata including contributor and date submitted.
-            let contributor: String = e.select(&user).next().unwrap().text().collect();
+            let contributor: String = e.select(&contributor).next().unwrap().text().collect();
             let date: String = e.select(&date).next().unwrap().text().collect();
-            let metadata = format!("by {contributor} on {date}.\n");
+            let metadata = format!("\nby {contributor} on {date}.\n");
 
-            println!("\n{}{}{}", style::Bold, metadata, style::Reset);
+            println!("{}{}{}", style::Bold, metadata, style::Reset);
         }
         if !found {
             println!("{} No results for '{}'.", color::Fg(color::Red), self.query);
