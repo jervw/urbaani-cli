@@ -1,59 +1,84 @@
 use reqwest::{blocking, StatusCode};
 use scraper::{Html, Selector};
-use std::env;
 use std::error::Error;
 use std::process;
 use termion::{color, style};
 
 const URL: &str = "https://urbaanisanakirja.com";
-fn parse_data(data: &str) {
-    let body = Html::parse_document(&data);
+const N_RESULTS: usize = 3;
 
-    let container = Selector::parse("div.box").unwrap();
+pub struct Urban {
+    query: String,
+}
 
-    let heading = Selector::parse("h1").unwrap();
-    let definition = Selector::parse("p").unwrap();
-    let user = Selector::parse("user").unwrap();
-    let date = Selector::parse("span.datetime").unwrap();
+impl Urban {
+    pub fn new() -> Self {
+        Self {
+            query: String::from(""),
+        }
+    }
 
-    let entries = body.select(&container);
-
-    for entry in entries {
-        //let heading = entry.select(&heading).next().unwrap();
-        //let definition = entry.select(&definition).next().unwrap();
-        //let date = entry.select(&date).next().unwrap();
-
-        //let user_string: String = user.text().collect();
-        //let date_string: String = date.text().collect();
-
-        //println!("{}", user_string);
-        let test: &str = "Tama on testisad askdakls lkas dl";
+    pub fn search(&mut self, query: &str) -> Result<(), Box<dyn Error>> {
+        self.query = query.to_owned();
         println!(
-            "{}{}{} {} \n{}",
+            "\n{}{}{}{}{}\n",
             style::Bold,
-            color::Bg(color::Cyan),
             color::Fg(color::Black),
-            &test,
+            color::Bg(color::Yellow),
+            &self.query,
             style::Reset
         );
 
-        println!(" - {}{}", style::Italic, textwrap::fill(&test, 60));
+        let response = blocking::get(format!("{}/word/{}", URL, &self.query))?;
 
-        println!("\n{}{}{}", style::Bold, &test, style::Reset);
+        match response.status() {
+            StatusCode::OK => {
+                let raw_text = response.text().unwrap();
+                self.parse(&raw_text);
+            }
+            e => {
+                eprintln!("Error getting response from: {} \n Error: {}", URL, e);
+                process::exit(1);
+            }
+        };
+
+        Ok(())
     }
-}
-pub fn search_query(query: &str) -> Result<(), Box<dyn Error>> {
-    let response = blocking::get(format!("{}/word/{}", URL, query))?;
 
-    match response.status() {
-        StatusCode::OK => {
-            let text = response.text().unwrap();
-            parse_data(&text);
+    fn parse(&self, data: &str) {
+        let body = Html::parse_document(&data);
+
+        let container = Selector::parse("div.box").unwrap();
+
+        let definition = Selector::parse("p").unwrap();
+        let user = Selector::parse("span.user").unwrap();
+        let date = Selector::parse("span.datetime").unwrap();
+
+        let entries = body.select(&container).take(N_RESULTS);
+
+        let mut found = false;
+        for e in entries {
+            found = true;
+
+            let definition: String = e.select(&definition).next().unwrap().text().collect();
+            let wrapped_definition = textwrap::wrap(&definition, 64);
+
+            
+            for line in wrapped_definition {
+                println!(" │ {}", line)
+            }
+
+            // metadata including contributor and date submitted.
+            let contributor: String = e.select(&user).next().unwrap().text().collect();
+            let date: String = e.select(&date).next().unwrap().text().collect();
+            let metadata = format!("by {contributor} on {date}.\n");
+
+            println!("\n{}{}{}", style::Bold, metadata, style::Reset);
         }
-        e => eprintln!("Error getting response from: {} \n Error: {}", URL, e),
-    };
+        if !found {
+            println!("{} No results for '{}'.", color::Fg(color::Red), self.query);
+        }
+    }
 
-    Ok(())
+    pub fn help(&self) {}
 }
-
-pub fn help() {}
