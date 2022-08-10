@@ -1,3 +1,5 @@
+use std::process;
+
 use urban::*;
 
 fn main() {
@@ -11,8 +13,8 @@ fn main() {
             "help" | "--help" | "-h" => app.help(),
             query => app.search(query).unwrap(),
         }
-    }
-    else {
+    } else {
         eprintln!("Usage: urban [WORD]\nTry 'urban --help' for more information.");
+        process::exit(1)
     }
 }
