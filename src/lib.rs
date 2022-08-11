@@ -85,7 +85,7 @@ impl Urban {
             // metadata including contributor and date submitted.
             let contributor: String = e.select(&contributor).next().unwrap().text().collect();
             let date: String = e.select(&date).next().unwrap().text().collect();
-            let metadata = format!("by {contributor} on {date}.\n");
+            let metadata = format!("by {contributor} on {date}\n");
 
             println!("{}{}{}", style::Bold, metadata, style::Reset);
         }
@@ -113,5 +113,12 @@ impl Urban {
             style::Reset
         );
     }
-    pub fn help(&self) {}
+    pub fn help(&self) {
+        let version = env!("CARGO_PKG_VERSION");
+        println!(
+            "Todo {version}\n\nUSAGE:
+    urban <word> [n] \t\tShow the n number of definitions\n\nOPTIONS:
+    -h, --help\t\t\tPrint help information"
+        );
+    }
 }
