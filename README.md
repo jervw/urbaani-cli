@@ -7,17 +7,18 @@ A CLI tool for fetching Urbaanisanakirja definitions.
 </p>
 
 <p align=center>
-  <img src=>
+  <img src=image.png>
 </p>
 
 # Installation
 ```
-git clone https://github.com/jervw/urbaani.git
-cd urbaani
+git clone https://github.com/jervw/urbaani-cli.git
+cd urbaani-cli
 cargo build --release
 ```
-Add to PATH
-`cp target/release/urbaani /usr/bin`
+Add to PATH:
+
+`sudo cp target/release/urbaani /usr/bin`
 
 
 # Usage
