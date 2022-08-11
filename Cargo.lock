@@ -1353,8 +1353,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ed742d4ea2bd1176e236172c8429aaf54486e7ac098db29ffe6529e0ce50973"
 
 [[package]]
-name = "urban"
-version = "0.5.0"
+name = "urbaani"
+version = "0.6.0"
 dependencies = [
  "reqwest",
  "scraper",
