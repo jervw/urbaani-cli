@@ -1,5 +1,5 @@
 <div align="center">
-<h1>urbaani - Urbananisanakirja CLI</h1>
+<h1>urbaani - Urbaanisanakirja CLI</h1>
 </div>
 
 <p align=center>
