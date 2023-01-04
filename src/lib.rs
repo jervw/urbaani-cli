@@ -4,16 +4,17 @@ use std::{error::Error, process};
 use termion::{color, style};
 
 const URL: &str = "https://urbaanisanakirja.com/word/";
-const COUNT: usize = 1; // default amount of results to display
 
 pub struct Urban {
     query: String,
+    count: u8,
 }
 
 impl Urban {
-    pub fn new() -> Self {
+    pub fn new(count: u8) -> Self {
         Self {
-            query: String::from(""),
+            query: String::new(),
+            count,
         }
     }
 
@@ -46,7 +47,7 @@ impl Urban {
         let contributor = Selector::parse("span.user").unwrap();
         let date = Selector::parse("span.datetime").unwrap();
 
-        let entries = body.select(&container).take(self.entries_count());
+        let entries = body.select(&container).take(self.count as usize);
 
         let mut found = false;
         for e in entries {
@@ -80,7 +81,7 @@ impl Urban {
                 None => (),
             };
 
-            println!("{}", style::Reset);
+            println!("{}\n", style::Reset);
 
             // metadata including contributor and date submitted.
             let contributor: String = e.select(&contributor).next().unwrap().text().collect();
@@ -95,14 +96,6 @@ impl Urban {
         }
     }
 
-    // number of entries to display to stdout if 3rd argument exists and is an integer
-    fn entries_count(&self) -> usize {
-        match std::env::args().nth(2) {
-            Some(val) => val.parse().unwrap_or(COUNT),
-            None => COUNT,
-        }
-    }
-
     fn print_query(&self) {
         println!(
             "\n{}{}{}{}{}\n",
@@ -111,14 +104,6 @@ impl Urban {
             color::Bg(color::Yellow),
             &self.query,
             style::Reset
-        );
-    }
-    pub fn help(&self) {
-        let version = env!("CARGO_PKG_VERSION");
-        println!(
-            "Todo {version}\n\nUSAGE:
-    urban <word> [n] \t\tShow the n number of definitions\n\nOPTIONS:
-    -h, --help\t\t\tPrint help information"
         );
     }
 }

@@ -1,20 +1,29 @@
-use std::process;
+use clap::Parser;
+
+#[derive(Parser)]
+#[clap(
+    name = "urbaani",
+    about = "A command line tool for searching the Finnish Urban Dictionary",
+    version = "0.6.2",
+    author = "Jere Vuola <vuolajere@gmail.com>"
+)]
+struct Args {
+    /// Search the term from dictionary
+    #[clap(name = "QUERY")]
+    query: String,
+    /// The amount of results to display
+    #[clap(name = "n", default_value = "3")]
+    count: u8,
+}
 
 use urbaani::*;
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    let mut app = Urban::new();
+    let args = Args::parse();
+    let mut app = Urban::new(args.count);
 
-    // handle arguments
-    if args.len() > 1 {
-        let query = &args[1];
-        match &query[..] {
-            "help" | "--help" | "-h" => app.help(),
-            query => app.search(query).unwrap(),
-        }
-    } else {
-        eprintln!("Usage: urban <word>\nTry 'urban --help' for more information.");
-        process::exit(1)
+    if let Err(e) = app.search(&args.query) {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
     }
 }
