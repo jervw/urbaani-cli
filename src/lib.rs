@@ -13,7 +13,7 @@ pub struct Urban {
 impl Urban {
     pub fn new(count: u8) -> Self {
         Self {
-            query: String::new(),
+            query: String::default(),
             count,
         }
     }
@@ -28,7 +28,7 @@ impl Urban {
                 self.scrape(&raw_text);
             }
             e => {
-                eprintln!("Error getting response from: {} \n Error: {}", URL, e);
+                eprintln!("Error getting response from: {URL} \n Error: {e}");
                 process::exit(1);
             }
         };
@@ -38,7 +38,7 @@ impl Urban {
 
     // a function to select specific web elements from the data, style and output it.
     fn scrape(&self, data: &str) {
-        let body = Html::parse_document(&data);
+        let body = Html::parse_document(data);
 
         let container = Selector::parse("div.box").unwrap();
 
@@ -59,27 +59,23 @@ impl Urban {
             // definition
             let definition: String = e.select(&definition).next().unwrap().text().collect();
             let wrapped_definition = textwrap::wrap(&definition, 64);
-            wrapped_definition.iter().for_each(|x| println!(" │ {}", x));
+            wrapped_definition.iter().for_each(|x| println!(" │ {x}"));
 
             println!();
 
             // if there are any given examples, seperate and output them.
-            match e.select(&quote).next() {
-                Some(ctx) => {
-                    let quotes: String = ctx.inner_html();
-                    let quotes_split: Vec<&str> = quotes.trim().split("<br>").collect();
+            if let Some(ctx) = e.select(&quote).next() {
+                let quotes: String = ctx.inner_html();
+                let quotes_split: Vec<&str> = quotes.trim().split("<br>").collect();
 
-                    for quote in quotes_split {
-                        match quote.is_empty() {
-                            true => println!(),
-                            false => {
-                                println!("{}{} - {}", style::Italic, color::Fg(color::Black), quote)
-                            }
-                        };
+                for quote in quotes_split {
+                    if quote.is_empty() {
+                        println!();
+                    } else {
+                        println!("{}{} - {}", style::Italic, color::Fg(color::Black), quote);
                     }
                 }
-                None => (),
-            };
+            }
 
             println!("{}\n", style::Reset);
 

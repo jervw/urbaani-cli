@@ -23,7 +23,7 @@ fn main() {
     let mut app = Urban::new(args.count);
 
     if let Err(e) = app.search(&args.query) {
-        eprintln!("Error: {}", e);
+        eprintln!("Error: {e}");
         std::process::exit(1);
     }
 }
