@@ -19,7 +19,7 @@ impl Urban {
     }
 
     pub fn search(&mut self, query: &str) -> Result<(), Box<dyn Error>> {
-        self.query = query.to_owned();
+        self.query = query.replace(" ", "-");
         let response = get(format!("{}{}", URL, &self.query))?;
 
         match response.status() {
